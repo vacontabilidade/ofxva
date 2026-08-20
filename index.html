@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protocolo — Lucro Real</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root{
+    --ink:#0B2A4A; --ink-2:#123A63; --ink-soft:#1E4A78;
+    --paper:#FFFFFF; --mist:#F4F7FB; --mist-2:#EBF0F7;
+    --crimson:#B3273A; --crimson-deep:#8C1F2E; --crimson-tint:#FBEBEC;
+    --gold-thread:#B98A3E; --emerald:#2C7A4E; --emerald-tint:#E9F3EE;
+    --slate:#5A6B82; --slate-light:#96A5B8;
+    --line:#E0E6EF; --line-strong:#C7D1DF;
+    --shadow-sm: 0 1px 2px rgba(11,42,74,.06);
+    --shadow-md: 0 4px 10px rgba(11,42,74,.06), 0 14px 34px rgba(11,42,74,.08);
+    --shadow-lg: 0 8px 24px rgba(11,42,74,.10), 0 24px 56px rgba(11,42,74,.14);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{ margin:0; background:var(--mist); color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; }
+  .mono{ font-family:'IBM Plex Mono', monospace; letter-spacing:.02em; }
+  .serif{ font-family:'Fraunces', serif; }
+  button{ font-family:inherit; cursor:pointer; }
+  input, select, textarea{ font-family:inherit; }
+  :focus-visible{ outline:2px solid var(--crimson); outline-offset:2px; }
+  .icon{ width:18px; height:18px; stroke:currentColor; stroke-width:1.6; fill:none; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; display:block; }
+
+  #app{ display:grid; grid-template-columns:264px 1fr; min-height:100vh; }
+  .sidebar{ background:linear-gradient(185deg, var(--ink) 0%, #081E38 100%); color:#C9D6E5; padding:30px 22px; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; }
+  .brand-mark{ display:flex; align-items:center; gap:12px; margin-bottom:38px; padding-left:2px; }
+  .brand-mark .glyph{ width:36px; height:36px; color:#F0AEB4; flex-shrink:0; }
+  .brand-mark .glyph svg{ width:100%; height:100%; }
+  .brand-mark .name{ font-family:'Fraunces', serif; font-size:17.5px; color:#fff; }
+  nav.nav{ display:flex; flex-direction:column; gap:2px; flex:1; }
+  .nav-item{ display:flex; align-items:center; gap:12px; padding:11px 13px; border-radius:9px; color:#AFC0D6; font-size:14px; font-weight:500; border:none; background:none; width:100%; text-align:left; transition:background .12s, color .12s; position:relative; }
+  .nav-item .icon{ opacity:.8; }
+  .nav-item:hover{ background:rgba(255,255,255,.06); color:#fff; }
+  .nav-item.active{ background:rgba(179,39,58,.22); color:#fff; }
+  .nav-item.active .icon{ opacity:1; color:#EE9BA0; }
+  .nav-item.active::before{ content:''; position:absolute; left:-22px; top:8px; bottom:8px; width:3px; background:var(--crimson); border-radius:0 3px 3px 0; }
+  .sidebar-foot{ border-top:1px solid rgba(255,255,255,.1); padding-top:16px; margin-top:14px; font-size:11.5px; color:#7E93AC; line-height:1.6; }
+
+  main.content{ padding:44px 52px; max-width:1280px; }
+  .page-head{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:14px; gap:20px; flex-wrap:wrap; }
+  .page-head h1{ font-family:'Fraunces', serif; font-weight:600; font-size:28px; margin:0 0 7px; letter-spacing:-.01em; }
+  .page-head p{ color:var(--slate); font-size:14.5px; margin:0; }
+  .eyebrow{ font-size:11.5px; text-transform:uppercase; letter-spacing:.12em; color:var(--crimson); font-weight:700; margin-bottom:8px; display:block; }
+  .head-rule{ height:1px; background:var(--line); margin:22px 0 30px; }
+
+  .card{ background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow-sm); }
+  .card-pad{ padding:26px 28px; }
+  .section-title{ font-family:'Fraunces', serif; font-size:16.5px; font-weight:600; margin:0 0 4px; display:flex; align-items:center; gap:9px; }
+  .section-title .icon{ color:var(--crimson); }
+  .section-sub{ font-size:13px; color:var(--slate); margin:0 0 18px; }
+
+  .btn{ border:none; border-radius:9px; padding:13px 20px; font-size:13.5px; font-weight:600; letter-spacing:.02em; display:inline-flex; align-items:center; justify-content:center; gap:9px; transition:transform .12s, box-shadow .12s, background .15s; }
+  .btn:active{ transform:translateY(1px); }
+  .btn-primary{ background:var(--ink); color:#fff; box-shadow:var(--shadow-sm); }
+  .btn-primary:hover{ background:var(--ink-2); }
+  .btn-seal{ background:var(--crimson); color:#fff; box-shadow:0 2px 8px rgba(179,39,58,.28); }
+  .btn-seal:hover{ background:var(--crimson-deep); }
+  .btn-ghost{ background:transparent; color:var(--slate); border:1.5px solid var(--line); font-weight:500; }
+  .btn-ghost:hover{ border-color:var(--ink); color:var(--ink); }
+  .btn-text{ background:none; color:var(--slate); padding:6px 8px; font-size:13px; font-weight:500; border-radius:6px; }
+  .btn-text:hover{ color:var(--ink); background:var(--mist-2); }
+  .btn-danger-text{ background:none; color:var(--crimson); padding:6px 8px; font-size:13px; font-weight:500; border-radius:6px; }
+  .btn-danger-text:hover{ background:var(--crimson-tint); }
+  .btn-sm{ padding:9px 14px; font-size:12.5px; }
+
+  .field{ margin-bottom:18px; }
+  label.flabel{ display:block; font-size:12px; font-weight:600; color:var(--slate); margin-bottom:8px; text-transform:uppercase; letter-spacing:.05em; }
+  input.field-input, select.field-input, textarea.field-input{ width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:9px; background:#fff; font-size:14px; color:var(--ink); transition:border-color .15s, box-shadow .15s; }
+  textarea.field-input{ resize:vertical; min-height:64px; line-height:1.5; }
+  input.field-input:focus, select.field-input:focus, textarea.field-input:focus{ border-color:var(--ink); box-shadow:0 0 0 4px rgba(11,42,74,.07); outline:none; }
+  .form-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px 20px; }
+  .form-grid .full{ grid-column:1/-1; }
+  @media (max-width:760px){ .form-grid{ grid-template-columns:1fr; } }
+  .hint{ font-size:12px; color:var(--slate-light); margin-top:6px; }
+
+  /* clientes grid */
+  .client-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:18px; margin-top:4px; }
+  .client-card{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:12px; box-shadow:var(--shadow-sm); transition:box-shadow .15s, transform .15s; }
+  .client-card:hover{ box-shadow:var(--shadow-md); transform:translateY(-1px); }
+  .client-top{ display:flex; align-items:flex-start; gap:12px; }
+  .client-avatar{ width:42px; height:42px; border-radius:10px; background:var(--mist); color:var(--ink-soft); display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:600; font-size:16px; flex-shrink:0; }
+  .client-name{ font-weight:600; font-size:14.5px; }
+  .client-cnpj{ font-size:12px; color:var(--slate); font-family:'IBM Plex Mono', monospace; margin-top:2px; }
+  .client-meta{ font-size:12.5px; color:var(--slate); display:flex; align-items:center; gap:6px; }
+  .client-meta .icon{ width:14px; height:14px; color:var(--slate-light); }
+  .client-actions{ display:flex; gap:8px; margin-top:4px; }
+  .client-actions .btn{ flex:1; }
+
+  /* generic tables */
+  table.doc-table{ width:100%; border-collapse:collapse; }
+  table.doc-table th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--slate); font-weight:700; padding:13px 16px; border-bottom:1.5px solid var(--line); }
+  table.doc-table td{ padding:15px 16px; border-bottom:1px solid var(--line); font-size:13.8px; vertical-align:middle; }
+  table.doc-table tbody tr:hover{ background:var(--mist); }
+  table.doc-table tr:last-child td{ border-bottom:none; }
+  .protocolo{ font-size:12.5px; color:var(--slate); }
+  .empty-state{ padding:64px 20px; text-align:center; color:var(--slate); }
+  .empty-state .ic{ width:34px; height:34px; margin:0 auto 14px; color:var(--slate-light); }
+  .empty-state .t{ font-family:'Fraunces', serif; font-size:17px; color:var(--ink); margin-bottom:6px; font-weight:600; }
+
+  /* months table */
+  .months-scroll{ overflow-x:auto; margin:0 -4px; }
+  table.months-table{ width:100%; min-width:820px; border-collapse:collapse; font-size:12.5px; }
+  table.months-table th{ text-align:right; font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--slate); font-weight:700; padding:8px 8px; border-bottom:1.5px solid var(--line); white-space:nowrap; }
+  table.months-table th:first-child, table.months-table td:first-child{ text-align:left; }
+  table.months-table td{ padding:5px 6px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  .mes-label{ font-weight:600; color:var(--ink); white-space:nowrap; font-size:12.5px; }
+  .cell-input{ width:128px; padding:10px 8px; border:1px solid var(--line); border-radius:8px; font-size:14px; text-align:right; font-family:'Fraunces', serif; font-weight:600; color:var(--ink); }
+  .cell-input:focus{ border-color:var(--ink); outline:none; box-shadow:0 0 0 3px rgba(11,42,74,.07); }
+  .cell-input.f-compras{ border-left:3px solid #3B82F6; }
+  .cell-input.f-vendas{ border-left:3px solid #EF4444; }
+  .cell-input.f-servicos{ border-left:3px solid #EAB308; }
+  .cell-input.f-sefaz{ border-left:3px solid #22C55E; }
+  .cell-input.f-contabil{ border-left:3px solid #3B82F6; }
+  .cell-computed{ text-align:right; font-family:'IBM Plex Mono', monospace; color:var(--slate); font-size:13px; white-space:nowrap; min-width:70px; }
+  .totals-row td{ font-weight:700; background:var(--mist); border-top:2px solid var(--line-strong); padding:11px 6px; }
+  .totals-row .mes-label{ font-family:'Fraunces', serif; }
+  .badge-aviso{ display:inline-flex; align-items:center; padding:4px 11px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+  .badge-aviso.ok{ background:var(--emerald-tint); color:var(--emerald); }
+  .badge-aviso.verificar{ background:var(--crimson-tint); color:var(--crimson); }
+  .badge-aviso.neutral{ background:var(--mist-2); color:var(--slate-light); }
+
+  .pendencia-box{ border-radius:11px; padding:14px 16px; display:flex; align-items:center; gap:12px; }
+  .pendencia-box.is-red{ background:var(--crimson-tint); border:1px solid #F0C4C9; }
+  .pendencia-box.is-green{ background:var(--emerald-tint); border:1px solid #C7E3D3; }
+  .pendencia-tag{ display:inline-flex; align-items:center; gap:6px; padding:6px 13px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap; flex-shrink:0; }
+  .pendencia-tag.is-red{ background:var(--crimson); color:#fff; }
+  .pendencia-tag.is-green{ background:var(--emerald); color:#fff; }
+  .pendencia-text{ font-size:12.5px; color:var(--slate); line-height:1.5; }
+
+  .stat-alert-row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; margin-bottom:22px; }
+  .stat-alert-card{ background:#fff; border:1px solid var(--line); border-left:4px solid var(--slate-light); border-radius:10px; padding:15px 18px; box-shadow:var(--shadow-sm); }
+  .stat-alert-card .lab{ font-size:10.5px; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:.03em; margin-bottom:9px; line-height:1.4; }
+  .stat-alert-card .num{ font-family:'Fraunces', serif; font-size:25px; font-weight:600; color:var(--ink); }
+  .stat-alert-card.c-red{ border-left-color:var(--crimson); }
+  .stat-alert-card.c-orange{ border-left-color:var(--gold-thread); }
+  .stat-alert-card.c-purple{ border-left-color:#7C5CD1; }
+  .stat-alert-card.c-emerald{ border-left-color:var(--emerald); }
+  .stat-alert-card.c-blue{ border-left-color:var(--ink-soft); }
+  .stat-alert-card.c-ink{ border-left-color:var(--ink); }
+
+  .step-nav{ display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+  .step-pill{ display:flex; align-items:center; gap:9px; font-size:13.5px; font-weight:600; color:var(--slate-light); }
+  .step-pill .step-num{ width:27px; height:27px; border-radius:50%; background:var(--mist-2); color:var(--slate-light); display:flex; align-items:center; justify-content:center; font-family:'Fraunces', serif; font-size:13px; font-weight:600; flex-shrink:0; }
+  .step-pill.active{ color:var(--ink); }
+  .step-pill.active .step-num{ background:var(--crimson); color:#fff; }
+  .step-line{ flex:0 0 60px; height:1px; background:var(--line); }
+
+  /* impostos cards */
+  .imposto-card{ border:1px solid var(--line); border-radius:11px; padding:16px 18px; margin-bottom:14px; position:relative; background:var(--mist); }
+
+  .company-logo{ border-radius:9px; background:var(--mist); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .company-logo img{ max-width:100%; max-height:100%; object-fit:contain; }
+  .company-logo .ph{ color:var(--slate-light); width:26px; height:26px; }
+  .filewell{ border:1.5px dashed var(--line-strong); border-radius:11px; text-align:center; background:var(--mist); cursor:pointer; transition:border-color .15s, background .15s; display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .filewell:hover{ border-color:var(--ink-soft); background:var(--mist-2); }
+  .filewell .fw-icon{ color:var(--slate-light); }
+  .filewell .fw-text{ font-size:13.5px; color:var(--slate); }
+  .imposto-grid{ display:grid; grid-template-columns:1.3fr .9fr .8fr .9fr; gap:10px; margin-bottom:10px; }
+  @media (max-width:760px){ .imposto-grid{ grid-template-columns:1fr 1fr; } }
+  .imposto-card .rm-imposto{ position:absolute; top:12px; right:12px; background:#fff; border:1.5px solid var(--line); width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--slate); }
+  .imposto-card .rm-imposto:hover{ border-color:var(--crimson); color:var(--crimson); }
+  .imposto-card .mini-label{ font-size:10.5px; font-weight:600; color:var(--slate); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px; display:block; }
+  .imposto-card input, .imposto-card textarea{ width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:7px; font-size:12.5px; background:#fff; }
+  .add-row-btn{ background:var(--mist); border:1.5px dashed var(--line-strong); color:var(--ink-soft); width:100%; padding:12px; border-radius:9px; font-size:13.5px; font-weight:500; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .add-row-btn:hover{ border-color:var(--ink-soft); background:var(--mist-2); }
+
+  .summary-card{ background:linear-gradient(165deg, var(--ink) 0%, #0E3055 100%); border-radius:14px; padding:26px 24px; color:#fff; min-width:0; }
+  .summary-row{ display:flex; justify-content:space-between; align-items:center; gap:14px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.1); font-size:13.5px; flex-wrap:nowrap; }
+  .summary-row:last-child{ border-bottom:none; padding-top:16px; }
+  .summary-row .lab{ color:#A9BAD0; }
+  .summary-row .val{ font-family:'IBM Plex Mono', monospace; font-weight:500; font-size:12.5px; white-space:nowrap; }
+  .summary-row.total .lab{ color:#fff; font-weight:600; font-family:'Fraunces',serif; font-size:15px; }
+
+  /* tax catalog table */
+  .company-meta{ font-size:12px; color:var(--slate); }
+
+  .modal-bg{ position:fixed; inset:0; background:rgba(8,30,56,.5); display:none; align-items:center; justify-content:center; z-index:50; padding:20px; backdrop-filter:blur(2px); }
+  .modal-bg.show{ display:flex; }
+  .modal{ background:#fff; border-radius:16px; width:100%; max-width:452px; padding:30px 30px 26px; box-shadow:var(--shadow-lg); }
+  .modal h3{ font-family:'Fraunces', serif; font-size:21px; margin:0 0 20px; font-weight:600; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:24px; }
+
+  .toast{ position:fixed; bottom:26px; right:26px; background:var(--ink); color:#fff; padding:14px 20px; border-radius:11px; font-size:13.5px; box-shadow:var(--shadow-lg); display:flex; align-items:center; gap:11px; transform:translateY(20px); opacity:0; pointer-events:none; transition:transform .25s ease, opacity .25s ease; z-index:70; font-weight:500; max-width:380px; }
+  .toast.show{ transform:translateY(0); opacity:1; }
+  .toast .dot{ width:7px; height:7px; border-radius:50%; background:#4ADE80; flex-shrink:0; }
+  .toast.is-error .dot{ background:#EE9BA0; }
+
+  @media (max-width:820px){
+    #app{ grid-template-columns:1fr; }
+    .sidebar{ position:relative; height:auto; }
+    main.content{ padding:30px 22px; }
+  }
+</style>
+</head>
+<body>
+
+<svg style="display:none">
+  <symbol id="i-seal" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="20.5" stroke="currentColor" stroke-width="1.4" fill="none"/>
+    <circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width=".9" fill="none" stroke-dasharray="1.4 3"/>
+    <circle cx="24" cy="24" r="12" stroke="currentColor" stroke-width="1.1" fill="none"/>
+    <text x="24" y="29.5" text-anchor="middle" font-family="Fraunces, serif" font-size="14" fill="currentColor" font-weight="600">P</text>
+    <path d="M24 2.3v3.6M24 42.1v3.6M2.3 24h3.6M42.1 24h3.6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M2.8 20.2a6.2 6.2 0 0 1 12.4 0"/><path d="M16 4.5a3.2 3.2 0 0 1 0 6.3"/><path d="M17.6 14.3a6.2 6.2 0 0 1 3.6 5.9"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M11.5 20.3H21"/><path d="M16.9 3.6a2.15 2.15 0 0 1 3 3.05L7.4 19.15l-4.1 1 1-4.1L16.9 3.6z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.3 7h15.4"/><path d="M9.3 7V4.3h5.4V7"/><path d="M6.2 7l1 12.7a1 1 0 0 0 1 .93h7.6a1 1 0 0 0 1-.93L17.8 7"/><path d="M10.3 10.8v6M13.7 10.8v6"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M3.4 6.4L12 12.7l8.6-6.3"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6.6 3.5l2.7 4.6a1.8 1.8 0 0 1-.4 2.3l-1.7 1.4a13.3 13.3 0 0 0 5.6 5.6l1.4-1.7a1.8 1.8 0 0 1 2.3-.4l4.6 2.7a1.8 1.8 0 0 1 .7 2.4l-1 1.9a2 2 0 0 1-2 1.1C10.6 22.5 1.5 13.4.7 4.9a2 2 0 0 1 1.1-2l1.9-1a1.8 1.8 0 0 1 2.4.7z"/></symbol>
+  <symbol id="i-percent" viewBox="0 0 24 24"><path d="M5 19L19 5"/><circle cx="7.2" cy="7.2" r="2.5"/><circle cx="16.8" cy="16.8" r="2.5"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M7 3.2h6.6L18.5 8v12.3a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.2a1 1 0 0 1 1-1z"/><path d="M13.6 3.2v4.6a.6.6 0 0 0 .6.6h4.3"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12"/><path d="M6.5 11.5L12 17l5.5-5.5"/><path d="M4 21h16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.2"/><circle cx="8.7" cy="9.7" r="1.7"/><path d="M21 15.5l-5.3-5.3a2 2 0 0 0-2.83 0L4.5 19"/></symbol>
+  <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3" y="7.3" width="18" height="13" rx="2"/><path d="M8.3 7.3V5.3a2 2 0 0 1 2-2h3.4a2 2 0 0 1 2 2v2"/><path d="M3 12.7h18"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 2.8L22.3 20.5H1.7L12 2.8z"/><path d="M12 9.7v4.6"/><path d="M12 17.6h.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.7l5.2 5.2L20 6.6"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.8v2.6M12 18.6v2.6M4.6 4.6l1.85 1.85M17.55 17.55l1.85 1.85M2.8 12h2.6M18.6 12h2.6M4.6 19.4l1.85-1.85M17.55 6.45l1.85-1.85"/></symbol>
+  <symbol id="i-table" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></symbol>
+</svg>
+
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand-mark">
+      <div class="glyph" id="sidebar-glyph"><svg viewBox="0 0 48 48"><use href="#i-seal"/></svg></div>
+      <div class="name" id="sidebar-name">Protocolo</div>
+    </div>
+    <nav class="nav" id="nav-menu">
+      <button class="nav-item" data-route="clientes"><svg class="icon"><use href="#i-users"/></svg>Clientes</button>
+      <button class="nav-item" data-route="novo-protocolo"><svg class="icon"><use href="#i-table"/></svg>Novo protocolo</button>
+      <button class="nav-item" data-route="protocolos"><svg class="icon"><use href="#i-list"/></svg>Protocolos gerados</button>
+      <button class="nav-item" data-route="configuracoes"><svg class="icon"><use href="#i-gear"/></svg>Configurações</button>
+    </nav>
+    <div class="sidebar-foot">Os dados ficam salvos apenas nesta sessão do navegador.</div>
+  </aside>
+
+  <main class="content" id="content"></main>
+</div>
+
+<!-- Client modal -->
+<div class="modal-bg" id="client-modal-bg">
+  <div class="modal">
+    <h3 id="client-modal-title">Novo cliente</h3>
+    <div class="field">
+      <label class="flabel">Nome do cliente</label>
+      <input type="text" id="client-name-input" class="field-input" placeholder="Ex: Aurora Comércio Ltda">
+    </div>
+    <div class="field">
+      <label class="flabel">CNPJ</label>
+      <input type="text" id="client-cnpj-input" class="field-input" placeholder="00.000.000/0000-00">
+    </div>
+    <div class="field">
+      <label class="flabel">E-mail</label>
+      <input type="email" id="client-email-input" class="field-input" placeholder="contato@empresa.com">
+    </div>
+    <div class="field">
+      <label class="flabel">Telefone</label>
+      <input type="text" id="client-phone-input" class="field-input" placeholder="(00) 00000-0000">
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label class="flabel">Regime tributário</label>
+      <select id="client-regime-input" class="field-input">
+        <option value="">— Nenhum —</option>
+      </select>
+      <div class="hint">Cadastre os regimes em Configurações.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="client-modal-cancel">Cancelar</button>
+      <button class="btn btn-seal" id="client-modal-save">Salvar cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tax modal -->
+<div class="modal-bg" id="tax-modal-bg">
+  <div class="modal">
+    <h3 id="tax-modal-title">Novo imposto</h3>
+    <div class="field">
+      <label class="flabel">Nome do imposto</label>
+      <input type="text" id="tax-name-input" class="field-input" placeholder="Ex: ICMS NORMAL, ICMS SUBST…">
+    </div>
+    <div class="field">
+      <label class="flabel">Vencimento (dia útil)</label>
+      <input type="number" id="tax-due-input" class="field-input" placeholder="Ex: 5" min="1" max="23" step="1">
+      <div class="hint">Informe o dia útil do mês em que o imposto costuma vencer (ex: 5º dia útil). Ao gerar o protocolo, o sistema sugere a data exata com base no calendário atual — mas você pode alterar manualmente.</div>
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label class="flabel">Observações</label>
+      <textarea id="tax-obs-input" class="field-input" placeholder="Observações adicionais (opcional)"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="tax-modal-cancel">Cancelar</button>
+      <button class="btn btn-seal" id="tax-modal-save">Salvar imposto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Regime modal -->
+<div class="modal-bg" id="regime-modal-bg">
+  <div class="modal">
+    <h3 id="regime-modal-title">Novo regime tributário</h3>
+    <div class="field">
+      <label class="flabel">Nome do regime</label>
+      <input type="text" id="regime-name-input" class="field-input" placeholder="Ex: Simples Nacional, Lucro Presumido…">
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label class="flabel">Observações</label>
+      <textarea id="regime-obs-input" class="field-input" placeholder="Observações adicionais (opcional)"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="regime-modal-cancel">Cancelar</button>
+      <button class="btn btn-seal" id="regime-modal-save">Salvar regime</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="dot"></span><span id="toast-text">Feito.</span></div>
+
+<script>
+/* =========================================================
+   CONSTANTES E ESTADO EM MEMÓRIA
+   ========================================================= */
+const MONTH_LABELS = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+
+const state = {
+  currentRoute: 'clientes',
+  editingClientId: null,
+  editingTaxId: null,
+  editingRegimeId: null,
+  pendingProtocolClientId: null,
+  officeLogo: null,
+  officeName: '',
+  clients: [
+    { id: 1, name: 'Aurora Comércio Ltda', cnpj: '12.345.678/0001-90', email: 'contato@aurora.com', phone: '(85) 99900-1122', regimeId: null },
+    { id: 2, name: 'Zênite Engenharia S.A.', cnpj: '98.765.432/0001-10', email: 'documentos@zenite.com', phone: '(11) 98800-3344', regimeId: null },
+  ],
+  taxCatalog: [],
+  taxRegimes: [
+    { id: 1, name: 'Simples Nacional', obs: '' },
+    { id: 2, name: 'Lucro Presumido', obs: '' },
+    { id: 3, name: 'Lucro Real', obs: '' },
+  ],
+  protocols: [],
+  clientCounter: 2,
+  taxCounter: 0,
+  regimeCounter: 3,
+  protocolCounter: 0,
+};
+
+function protocoloFor(n){
+  const year = new Date().getFullYear();
+  return `PR-${year}-${String(n).padStart(4,'0')}`;
+}
+function renderBrandMark(){
+  const glyph = document.getElementById('sidebar-glyph');
+  const nameEl = document.getElementById('sidebar-name');
+  if(glyph){
+    glyph.innerHTML = state.officeLogo
+      ? `<img src="${state.officeLogo}" alt="Logo do escritório" style="width:100%;height:100%;object-fit:contain;border-radius:8px;">`
+      : `<svg viewBox="0 0 48 48"><use href="#i-seal"/></svg>`;
+  }
+  if(nameEl){
+    nameEl.textContent = state.officeName ? state.officeName : 'Protocolo';
+  }
+}
+renderBrandMark();
+function fmtMoney(v){
+  v = Number(v) || 0;
+  return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function parseBRNumber(str){
+  if(!str) return 0;
+  const n = Number(String(str).replace(/\./g, '').replace(',', '.'));
+  return isNaN(n) ? 0 : n;
+}
+function maskMoneyValue(raw){
+  let digits = raw.replace(/\D/g, '');
+  if(!digits) return '';
+  digits = digits.replace(/^0+(?=\d)/, '');
+  while(digits.length < 3) digits = '0' + digits;
+  const cents = digits.slice(-2);
+  let intPart = digits.slice(0, -2).replace(/^0+(?=\d)/, '');
+  if(intPart === '') intPart = '0';
+  intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return intPart + ',' + cents;
+}
+function attachMoneyMasks(container){
+  container.querySelectorAll('.money-mask').forEach(input => {
+    input.addEventListener('input', function(){
+      this.value = maskMoneyValue(this.value);
+    });
+  });
+}
+function maskPeriodoValue(raw){
+  const digits = raw.replace(/\D/g, '').slice(0, 6);
+  if(digits.length <= 2) return digits;
+  return digits.slice(0, 2) + '/' + digits.slice(2);
+}
+function finalizePeriodoValue(val){
+  if(!val) return val;
+  const parts = val.split('/');
+  if(parts.length !== 2) return val;
+  let [mm, yy] = parts;
+  if(yy.length === 2) yy = '20' + yy;
+  if(yy.length === 0) return val;
+  return mm + '/' + yy;
+}
+function attachPeriodoMask(container){
+  container.querySelectorAll('.periodo-mask').forEach(input => {
+    input.addEventListener('input', function(){
+      this.value = maskPeriodoValue(this.value);
+    });
+    input.addEventListener('blur', function(){
+      this.value = finalizePeriodoValue(this.value);
+    });
+  });
+}
+function fmtPercent(v){
+  v = Number(v) || 0;
+  return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+}
+function todayLabel(){ return new Date().toLocaleDateString('pt-BR'); }
+function formatDateBR(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function nthBusinessDayISO(year, month, n){
+  if(!n) return '';
+  const daysInMonth = new Date(year, month, 0).getDate();
+  let count = 0;
+  for(let day = 1; day <= daysInMonth; day++){
+    const dow = new Date(year, month - 1, day).getDay();
+    if(dow !== 0 && dow !== 6){
+      count++;
+      if(count === n){
+        return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      }
+    }
+  }
+  return '';
+}
+function suggestDueDateFromBusinessDay(n){
+  const today = new Date();
+  return nthBusinessDayISO(today.getFullYear(), today.getMonth() + 1, n);
+}
+function lucroPercent(compras, vendas, servicos){
+  if(!compras) return 0;
+  return ((vendas + servicos - compras) / compras) * 100;
+}
+function avisoStatus(sefaz, contabil){
+  return Math.abs((Number(sefaz)||0) - (Number(contabil)||0)) < 0.01 ? 'OK' : 'VERIFICAR';
+}
+function computeTotals(months){
+  const sum = key => months.reduce((s,m)=> s + (Number(m[key])||0), 0);
+  const compras = sum('compras'), vendas = sum('vendas'), servicos = sum('servicos'), sefaz = sum('sefaz'), contabil = sum('contabil');
+  return { compras, vendas, servicos, sefaz, contabil, lucro: lucroPercent(compras, vendas, servicos), aviso: avisoStatus(sefaz, contabil) };
+}
+
+/* =========================================================
+   COMPARATIVO SIMPLES NACIONAL (lucro acumulado ≥ 25%)
+   ========================================================= */
+const SIMPLES_NACIONAL_MIN_LUCRO = 25;
+
+function isSimplesNacionalRegime(regimeName){
+  return !!regimeName && /simples\s*nacional/i.test(regimeName);
+}
+
+function computeSimplesNacionalRows(months){
+  let cumCompras = 0, cumVendas = 0, cumServicos = 0;
+  return months.map(m => {
+    cumCompras += Number(m.compras) || 0;
+    cumVendas += Number(m.vendas) || 0;
+    cumServicos += Number(m.servicos) || 0;
+    const hasData = cumCompras > 0 || cumVendas > 0;
+    const lucroYTD = cumCompras > 0 ? lucroPercent(cumCompras, cumVendas, cumServicos) : 0;
+    const status = !hasData ? 'SEM DADOS' : (lucroYTD < SIMPLES_NACIONAL_MIN_LUCRO ? 'PENDÊNCIA' : 'OK');
+    return { label: m.label, lucroYTD, status, hasData };
+  });
+}
+
+function getSelectedClientRegime(){
+  const clientSel = document.getElementById('p-client');
+  if(!clientSel) return null;
+  const client = state.clients.find(c => c.id === Number(clientSel.value));
+  if(!client || !client.regimeId) return null;
+  return state.taxRegimes.find(r => r.id === client.regimeId) || null;
+}
+function getSelectedClientRegimeName(){
+  const regime = getSelectedClientRegime();
+  return regime ? regime.name : null;
+}
+
+function renderSimplesSection(){
+  const container = document.getElementById('simples-section');
+  if(!container) return;
+  const regime = getSelectedClientRegime();
+  if(!isSimplesNacionalRegime(regime ? regime.name : null)){
+    container.innerHTML = '';
+    return;
+  }
+  const months = collectMonthsData();
+  const rows = computeSimplesNacionalRows(months);
+  const pendingCount = rows.filter(r => r.status === 'PENDÊNCIA').length;
+  const customMsg = (regime.obs || '').trim();
+  const pendingMsg = customMsg || `${pendingCount} ${pendingCount > 1 ? 'meses estão' : 'mês está'} com lucro acumulado abaixo de ${SIMPLES_NACIONAL_MIN_LUCRO}% — resolver até 31/12.`;
+
+  container.innerHTML = `
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-pad">
+        <h3 class="section-title"><svg class="icon"><use href="#i-alert"/></svg>Comparativo Simples Nacional</h3>
+        <p class="section-sub">Lucro acumulado (janeiro → mês) precisa ficar acima de ${SIMPLES_NACIONAL_MIN_LUCRO}%. Abaixo disso, gera pendência para a empresa resolver até o fim do ano.</p>
+        ${pendingCount ? `
+          <div class="pendencia-box is-red" style="margin-bottom:16px;">
+            <span class="pendencia-tag is-red"><svg class="icon" style="width:13px;height:13px;"><use href="#i-alert"/></svg>Pendência</span>
+            <span class="pendencia-text">${pendingMsg}</span>
+          </div>
+        ` : `
+          <div class="pendencia-box is-green" style="margin-bottom:16px;">
+            <span class="pendencia-tag is-green"><svg class="icon" style="width:13px;height:13px;"><use href="#i-check"/></svg>Regularizado</span>
+            <span class="pendencia-text">Lucro acumulado dentro da faixa exigida em todos os meses com movimento.</span>
+          </div>
+        `}
+        <div class="months-scroll">
+          <table class="months-table" style="min-width:420px;">
+            <thead><tr><th>Mês</th><th>Lucro acumulado %</th><th>Situação</th></tr></thead>
+            <tbody>
+              ${rows.map(r => `
+                <tr>
+                  <td class="mes-label">${r.label}</td>
+                  <td class="cell-computed">${r.hasData ? fmtPercent(r.lucroYTD) : '—'}</td>
+                  <td class="cell-computed"><span class="badge-aviso ${r.status==='PENDÊNCIA'?'verificar':(r.status==='OK'?'ok':'neutral')}">${r.status}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================
+   NAVEGAÇÃO
+   ========================================================= */
+document.querySelectorAll('.nav-item').forEach(btn=>{
+  btn.addEventListener('click', ()=> navigate(btn.dataset.route));
+});
+
+function navigate(route, opts){
+  opts = opts || {};
+  state.currentRoute = route;
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.route === route));
+  const content = document.getElementById('content');
+  if(route === 'clientes') content.innerHTML = renderClientes();
+  else if(route === 'novo-protocolo') content.innerHTML = renderNovoProtocolo(opts.clientId);
+  else if(route === 'protocolos') content.innerHTML = renderProtocolos();
+  else if(route === 'configuracoes') content.innerHTML = renderConfiguracoes();
+  afterRender(route);
+}
+navigate('clientes');
+
+/* =========================================================
+   CLIENTES
+   ========================================================= */
+function renderClientes(){
+  return `
+    <div class="page-head">
+      <div>
+        <span class="eyebrow">Cadastro</span>
+        <h1>Clientes</h1>
+        <p>Inclua, edite ou remova os clientes que recebem protocolos.</p>
+      </div>
+      <button class="btn btn-seal" id="new-client-btn"><svg class="icon"><use href="#i-plus"/></svg>Novo cliente</button>
+    </div>
+    <div class="head-rule"></div>
+    <div class="client-grid" id="client-grid"></div>
+  `;
+}
+
+function renderClientGrid(){
+  const grid = document.getElementById('client-grid');
+  if(!grid) return;
+  if(state.clients.length === 0){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <svg class="icon ic"><use href="#i-users"/></svg>
+      <div class="t">Nenhum cliente cadastrado</div>
+      <div>Clique em "Novo cliente" para começar.</div>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = state.clients.map(c => {
+    const regime = state.taxRegimes.find(r => r.id === c.regimeId);
+    return `
+    <div class="client-card">
+      <div class="client-top">
+        <div class="client-avatar">${c.name.charAt(0).toUpperCase()}</div>
+        <div>
+          <div class="client-name">${c.name}</div>
+          ${c.cnpj ? `<div class="client-cnpj">${c.cnpj}</div>` : ''}
+        </div>
+      </div>
+      ${c.email ? `<div class="client-meta"><svg class="icon"><use href="#i-mail"/></svg>${c.email}</div>` : ''}
+      ${c.phone ? `<div class="client-meta"><svg class="icon"><use href="#i-phone"/></svg>${c.phone}</div>` : ''}
+      <div class="client-meta"><svg class="icon"><use href="#i-briefcase"/></svg>${regime ? regime.name : 'Regime não definido'}</div>
+      <div class="client-actions">
+        <button class="btn btn-primary btn-sm" data-protocol="${c.id}"><svg class="icon" style="width:14px;height:14px;"><use href="#i-file"/></svg>Gerar protocolo</button>
+        <button class="btn btn-ghost btn-sm" data-edit="${c.id}"><svg class="icon" style="width:14px;height:14px;"><use href="#i-edit"/></svg></button>
+        <button class="btn btn-danger-text" data-del="${c.id}"><svg class="icon" style="width:14px;height:14px;"><use href="#i-trash"/></svg></button>
+      </div>
+    </div>
+  `;
+  }).join('');
+  grid.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', ()=> openClientModal(Number(b.dataset.edit))));
+  grid.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', ()=> deleteClient(Number(b.dataset.del))));
+  grid.querySelectorAll('[data-protocol]').forEach(b => b.addEventListener('click', ()=> navigate('novo-protocolo', { clientId: Number(b.dataset.protocol) })));
+}
+
+function openClientModal(clientId){
+  state.editingClientId = clientId || null;
+  const title = document.getElementById('client-modal-title');
+  const nameInput = document.getElementById('client-name-input');
+  const cnpjInput = document.getElementById('client-cnpj-input');
+  const emailInput = document.getElementById('client-email-input');
+  const phoneInput = document.getElementById('client-phone-input');
+  const regimeInput = document.getElementById('client-regime-input');
+  regimeInput.innerHTML = '<option value="">— Nenhum —</option>' + state.taxRegimes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+  if(clientId){
+    const c = state.clients.find(c => c.id === clientId);
+    title.textContent = 'Editar cliente';
+    nameInput.value = c.name; cnpjInput.value = c.cnpj || ''; emailInput.value = c.email || ''; phoneInput.value = c.phone || '';
+    regimeInput.value = c.regimeId || '';
+  } else {
+    title.textContent = 'Novo cliente';
+    nameInput.value = ''; cnpjInput.value = ''; emailInput.value = ''; phoneInput.value = '';
+    regimeInput.value = '';
+  }
+  document.getElementById('client-modal-bg').classList.add('show');
+  nameInput.focus();
+}
+function closeClientModal(){ document.getElementById('client-modal-bg').classList.remove('show'); }
+
+function deleteClient(id){
+  const c = state.clients.find(c => c.id === id);
+  if(!c) return;
+  if(confirm(`Excluir "${c.name}"? Protocolos já gerados para ele permanecerão no histórico.`)){
+    state.clients = state.clients.filter(c => c.id !== id);
+    renderClientGrid();
+    showToast('Cliente excluído.');
+  }
+}
+
+document.getElementById('client-modal-cancel').addEventListener('click', closeClientModal);
+document.getElementById('client-modal-save').addEventListener('click', function(){
+  const name = document.getElementById('client-name-input').value.trim();
+  const cnpj = document.getElementById('client-cnpj-input').value.trim();
+  const email = document.getElementById('client-email-input').value.trim();
+  const phone = document.getElementById('client-phone-input').value.trim();
+  const regimeId = Number(document.getElementById('client-regime-input').value) || null;
+  if(!name){ showToast('Informe o nome do cliente.', true); return; }
+
+  if(state.editingClientId){
+    const c = state.clients.find(c => c.id === state.editingClientId);
+    c.name = name; c.cnpj = cnpj; c.email = email; c.phone = phone; c.regimeId = regimeId;
+    showToast('Cliente atualizado.');
+  } else {
+    state.clientCounter += 1;
+    state.clients.push({ id: state.clientCounter, name, cnpj, email, phone, regimeId });
+    showToast('Cliente cadastrado.');
+  }
+  closeClientModal();
+  renderClientGrid();
+});
+
+/* =========================================================
+   CONFIGURAÇÕES — Impostos cadastrados
+   ========================================================= */
+function renderConfiguracoes(){
+  return `
+    <div class="page-head">
+      <div>
+        <span class="eyebrow">Administração</span>
+        <h1>Configurações</h1>
+        <p>Cadastre os impostos, os regimes tributários e a identidade visual usados nos protocolos.</p>
+      </div>
+    </div>
+    <div class="head-rule"></div>
+
+    <h3 class="section-title"><svg class="icon"><use href="#i-image"/></svg>Identidade do escritório</h3>
+    <div class="card" style="margin-bottom:36px;">
+      <div class="card-pad">
+        <p class="section-sub">Nome e logotipo do seu escritório — aparecem no menu lateral e no cabeçalho dos protocolos em PDF gerados.</p>
+        <div class="field" style="max-width:420px;">
+          <label class="flabel">Nome do escritório</label>
+          <input type="text" id="office-name-input" class="field-input" placeholder="Ex: Renan Contabilidade" value="${state.officeName || ''}">
+        </div>
+        <div style="display:flex; gap:24px; align-items:center; flex-wrap:wrap;">
+          <div class="company-logo" style="width:130px; height:92px; flex-shrink:0;">
+            ${state.officeLogo ? `<img src="${state.officeLogo}" alt="Logo do escritório">` : `<svg class="icon ph"><use href="#i-seal"/></svg>`}
+          </div>
+          <div style="flex:1; min-width:240px;">
+            <div class="filewell" id="office-logo-filewell" style="padding:16px;">
+              <svg class="icon fw-icon" style="width:22px;height:22px;"><use href="#i-image"/></svg>
+              <div class="fw-text" id="office-logo-filewell-text">Clique para enviar o logotipo do escritório</div>
+            </div>
+            <input type="file" id="office-logo-input" accept="image/*" style="display:none">
+            <div class="hint">PNG ou JPG com fundo transparente funciona melhor.</div>
+            ${state.officeLogo ? `<button class="btn btn-text" id="remove-office-logo-btn" style="margin-top:6px; padding-left:2px;"><svg class="icon" style="width:14px;height:14px;"><use href="#i-trash"/></svg>Remover logotipo</button>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:16px;">
+      <h3 class="section-title" style="margin:0;"><svg class="icon"><use href="#i-percent"/></svg>Impostos cadastrados</h3>
+      <button class="btn btn-seal" id="new-tax-btn"><svg class="icon"><use href="#i-plus"/></svg>Novo imposto</button>
+    </div>
+    <div class="card" style="margin-bottom:36px;">
+      <div class="card-pad" style="padding-top:8px;padding-bottom:8px;">
+        <div id="tax-table-wrap"></div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:16px;">
+      <h3 class="section-title" style="margin:0;"><svg class="icon"><use href="#i-briefcase"/></svg>Regimes tributários</h3>
+      <button class="btn btn-seal" id="new-regime-btn"><svg class="icon"><use href="#i-plus"/></svg>Novo regime</button>
+    </div>
+    <div class="card">
+      <div class="card-pad" style="padding-top:8px;padding-bottom:8px;">
+        <div id="regime-table-wrap"></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderRegimeTable(){
+  const wrap = document.getElementById('regime-table-wrap');
+  if(!wrap) return;
+  if(state.taxRegimes.length === 0){
+    wrap.innerHTML = `<div class="empty-state">
+      <svg class="icon ic"><use href="#i-briefcase"/></svg>
+      <div class="t">Nenhum regime cadastrado</div>
+      <div>Clique em "Novo regime" para começar.</div>
+    </div>`;
+    return;
+  }
+  const rows = state.taxRegimes.map(r => `
+    <tr>
+      <td style="font-weight:600;">${r.name}</td>
+      <td style="color:var(--slate); max-width:420px;">${r.obs ? r.obs : '—'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-sm" data-edit-regime="${r.id}"><svg class="icon" style="width:14px;height:14px;"><use href="#i-edit"/></svg>Editar</button>
+        <button class="btn btn-danger-text" data-del-regime="${r.id}"><svg class="icon" style="width:14px;height:14px;"><use href="#i-trash"/></svg></button>
+      </td>
+    </tr>
+  `).join('');
+  wrap.innerHTML = `
+    <table class="doc-table">
+      <thead><tr><th>Regime</th><th>Observações</th><th>Ações</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+  wrap.querySelectorAll('[data-edit-regime]').forEach(b => b.addEventListener('click', ()=> openRegimeModal(Number(b.dataset.editRegime))));
+  wrap.querySelectorAll('[data-del-regime]').forEach(b => b.addEventListener('click', ()=> deleteRegime(Number(b.dataset.delRegime))));
+}
+
+function openRegimeModal(regimeId){
+  state.editingRegimeId = regimeId || null;
+  const title = document.getElementById('regime-modal-title');
+  const nameInput = document.getElementById('regime-name-input');
+  const obsInput = document.getElementById('regime-obs-input');
+  if(regimeId){
+    const r = state.taxRegimes.find(r => r.id === regimeId);
+    title.textContent = 'Editar regime tributário';
+    nameInput.value = r.name; obsInput.value = r.obs || '';
+  } else {
+    title.textContent = 'Novo regime tributário';
+    nameInput.value = ''; obsInput.value = '';
+  }
+  document.getElementById('regime-modal-bg').classList.add('show');
+  nameInput.focus();
+}
+function closeRegimeModal(){ document.getElementById('regime-modal-bg').classList.remove('show'); }
+
+function deleteRegime(id){
+  const r = state.taxRegimes.find(r => r.id === id);
+  if(!r) return;
+  if(confirm(`Excluir o regime "${r.name}"? Clientes que usam esse regime ficarão sem regime definido.`)){
+    state.taxRegimes = state.taxRegimes.filter(r => r.id !== id);
+    state.clients.forEach(c => { if(c.regimeId === id) c.regimeId = null; });
+    renderRegimeTable();
+    showToast('Regime excluído.');
+  }
+}
+
+document.getElementById('regime-modal-cancel').addEventListener('click', closeRegimeModal);
+document.getElementById('regime-modal-save').addEventListener('click', function(){
+  const name = document.getElementById('regime-name-input').value.trim();
+  const obs = document.getElementById('regime-obs-input').value.trim();
+  if(!name){ showToast('Informe o nome do regime.', true); return; }
+
+  if(state.editingRegimeId){
+    const r = state.taxRegimes.find(r => r.id === state.editingRegimeId);
+    r.name = name; r.obs = obs;
+    showToast('Regime atualizado.');
+  } else {
+    state.regimeCounter += 1;
+    state.taxRegimes.push({ id: state.regimeCounter, name, obs });
+    showToast('Regime cadastrado.');
+  }
+  closeRegimeModal();
+  renderRegimeTable();
+});
+
+function renderTaxTable(){
+  const wrap = document.getElementById('tax-table-wrap');
+  if(!wrap) return;
+  if(state.taxCatalog.length === 0){
+    wrap.innerHTML = `<div class="empty-state">
+      <svg class="icon ic"><use href="#i-percent"/></svg>
+      <div class="t">Nenhum imposto cadastrado</div>
+      <div>Clique em "Novo imposto" para começar.</div>
+    </div>`;
+    return;
+  }
+  const rows = state.taxCatalog.map(t => `
+    <tr>
+      <td style="font-weight:600;">${t.name}</td>
+      <td>${t.due ? t.due + 'º dia útil' : '—'}</td>
+      <td style="color:var(--slate); max-width:320px;">${t.obs ? t.obs : '—'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-sm" data-edit-tax="${t.id}"><svg class="icon" style="width:14px;height:14px;"><use href="#i-edit"/></svg>Editar</button>
+        <button class="btn btn-danger-text" data-del-tax="${t.id}"><svg class="icon" style="width:14px;height:14px;"><use href="#i-trash"/></svg></button>
+      </td>
+    </tr>
+  `).join('');
+  wrap.innerHTML = `
+    <table class="doc-table">
+      <thead><tr><th>Imposto</th><th>Vencimento</th><th>Observações</th><th>Ações</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+  wrap.querySelectorAll('[data-edit-tax]').forEach(b => b.addEventListener('click', ()=> openTaxModal(Number(b.dataset.editTax))));
+  wrap.querySelectorAll('[data-del-tax]').forEach(b => b.addEventListener('click', ()=> deleteTax(Number(b.dataset.delTax))));
+}
+
+function openTaxModal(taxId){
+  state.editingTaxId = taxId || null;
+  const title = document.getElementById('tax-modal-title');
+  const nameInput = document.getElementById('tax-name-input');
+  const dueInput = document.getElementById('tax-due-input');
+  const obsInput = document.getElementById('tax-obs-input');
+  if(taxId){
+    const t = state.taxCatalog.find(t => t.id === taxId);
+    title.textContent = 'Editar imposto';
+    nameInput.value = t.name; dueInput.value = t.due || ''; obsInput.value = t.obs || '';
+  } else {
+    title.textContent = 'Novo imposto';
+    nameInput.value = ''; dueInput.value = ''; obsInput.value = '';
+  }
+  document.getElementById('tax-modal-bg').classList.add('show');
+  nameInput.focus();
+}
+function closeTaxModal(){ document.getElementById('tax-modal-bg').classList.remove('show'); }
+
+function deleteTax(id){
+  const t = state.taxCatalog.find(t => t.id === id);
+  if(!t) return;
+  if(confirm(`Excluir "${t.name}" da lista de impostos cadastrados?`)){
+    state.taxCatalog = state.taxCatalog.filter(t => t.id !== id);
+    renderTaxTable();
+    showToast('Imposto excluído.');
+  }
+}
+
+document.getElementById('tax-modal-cancel').addEventListener('click', closeTaxModal);
+document.getElementById('tax-modal-save').addEventListener('click', function(){
+  const name = document.getElementById('tax-name-input').value.trim();
+  const due = Number(document.getElementById('tax-due-input').value) || null;
+  const obs = document.getElementById('tax-obs-input').value.trim();
+  if(!name){ showToast('Informe o nome do imposto.', true); return; }
+
+  if(state.editingTaxId){
+    const t = state.taxCatalog.find(t => t.id === state.editingTaxId);
+    t.name = name; t.due = due; t.obs = obs;
+    showToast('Imposto atualizado.');
+  } else {
+    state.taxCounter += 1;
+    state.taxCatalog.push({ id: state.taxCounter, name, due, obs });
+    showToast('Imposto cadastrado.');
+  }
+  closeTaxModal();
+  renderTaxTable();
+});
+
+/* =========================================================
+   NOVO PROTOCOLO (relatório Lucro Real: 12 meses + impostos)
+   ========================================================= */
+function renderNovoProtocolo(preselectClientId){
+  state.pendingProtocolClientId = preselectClientId || state.pendingProtocolClientId;
+  if(state.clients.length === 0){
+    return `
+      <div class="page-head"><div><span class="eyebrow">Documento</span><h1>Novo protocolo</h1><p>Cadastre um cliente antes de gerar um protocolo.</p></div></div>
+      <div class="head-rule"></div>
+      <div class="empty-state"><svg class="icon ic"><use href="#i-users"/></svg><div class="t">Nenhum cliente cadastrado</div><div>Vá em "Clientes" e cadastre um antes de gerar o protocolo.</div></div>
+    `;
+  }
+  const options = state.clients.map(c => `<option value="${c.id}" ${state.pendingProtocolClientId === c.id ? 'selected' : ''}>${c.name}</option>`).join('');
+  const currentYear = new Date().getFullYear();
+  const yearOptions = [currentYear-1, currentYear, currentYear+1].map(y => `<option value="${y}" ${y===currentYear?'selected':''}>${y}</option>`).join('');
+
+  const monthRows = MONTH_LABELS.map((label, i) => `
+    <tr data-month="${i}">
+      <td class="mes-label">${label}</td>
+      <td><input type="text" inputmode="decimal" class="cell-input money-mask m-compras f-compras"></td>
+      <td><input type="text" inputmode="decimal" class="cell-input money-mask m-vendas f-vendas"></td>
+      <td><input type="text" inputmode="decimal" class="cell-input money-mask m-servicos f-servicos"></td>
+      <td class="cell-computed m-lucro">0,00%</td>
+      <td><input type="text" inputmode="decimal" class="cell-input money-mask m-sefaz f-sefaz"></td>
+      <td><input type="text" inputmode="decimal" class="cell-input money-mask m-contabil f-contabil"></td>
+      <td class="cell-computed"><span class="badge-aviso ok m-aviso">OK</span></td>
+    </tr>
+  `).join('');
+
+  return `
+    <div class="page-head">
+      <div>
+        <span class="eyebrow">Documento</span>
+        <h1>Novo protocolo — Lucro Real</h1>
+        <p>Preencha os 12 meses do ano e os impostos do período para gerar o PDF.</p>
+      </div>
+    </div>
+    <div class="head-rule"></div>
+
+    <div class="step-nav">
+      <div class="step-pill active" data-step="1"><span class="step-num">1</span>Movimento</div>
+      <div class="step-line"></div>
+      <div class="step-pill" data-step="2"><span class="step-num">2</span>Impostos e vencimentos</div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1.35fr 1fr; gap:24px; align-items:start;">
+      <div>
+        <div id="protocol-step-1">
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-pad">
+              <div class="form-grid">
+                <div>
+                  <label class="flabel">Cliente</label>
+                  <select id="p-client" class="field-input">${options}</select>
+                </div>
+                <div>
+                  <label class="flabel">Ano</label>
+                  <select id="p-ano" class="field-input">${yearOptions}</select>
+                </div>
+                <div>
+                  <label class="flabel">Responsável</label>
+                  <input type="text" id="p-responsavel" class="field-input" placeholder="Ex: Renan">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-pad">
+              <h3 class="section-title"><svg class="icon"><use href="#i-table"/></svg>Compras × Vendas × SEFAZ × Contabilidade</h3>
+              <p class="section-sub">Lucro % e Aviso são calculados automaticamente conforme você preenche.</p>
+
+              <div class="stat-alert-row">
+                <div class="stat-alert-card c-red">
+                  <div class="lab">Total Compras</div>
+                  <div class="num mono" id="stat-t-compras">R$ 0,00</div>
+                </div>
+                <div class="stat-alert-card c-emerald">
+                  <div class="lab">Total Vendas</div>
+                  <div class="num mono" id="stat-t-vendas">R$ 0,00</div>
+                </div>
+                <div class="stat-alert-card c-blue">
+                  <div class="lab">Total Serviços</div>
+                  <div class="num mono" id="stat-t-servicos">R$ 0,00</div>
+                </div>
+                <div class="stat-alert-card c-orange">
+                  <div class="lab">Lucro % (ano)</div>
+                  <div class="num" id="stat-t-lucro">0,00%</div>
+                </div>
+                <div class="stat-alert-card c-purple">
+                  <div class="lab">Total SEFAZ</div>
+                  <div class="num mono" id="stat-t-sefaz">R$ 0,00</div>
+                </div>
+                <div class="stat-alert-card c-ink">
+                  <div class="lab">Total Contabilidade</div>
+                  <div class="num mono" id="stat-t-contabil">R$ 0,00</div>
+                </div>
+              </div>
+
+              <div class="months-scroll">
+                <table class="months-table">
+                  <thead>
+                    <tr>
+                      <th>Mês</th><th>Compras</th><th>Vendas</th><th>Serviços</th><th>Lucro %</th><th>SEFAZ</th><th>Contabilidade</th><th>Aviso</th>
+                    </tr>
+                  </thead>
+                  <tbody id="months-tbody">${monthRows}</tbody>
+                  <tfoot>
+                    <tr class="totals-row">
+                      <td class="mes-label">TOTAL</td>
+                      <td class="cell-computed mono" id="t-compras">0,00</td>
+                      <td class="cell-computed mono" id="t-vendas">0,00</td>
+                      <td class="cell-computed mono" id="t-servicos">0,00</td>
+                      <td class="cell-computed" id="t-lucro">0,00%</td>
+                      <td class="cell-computed mono" id="t-sefaz">0,00</td>
+                      <td class="cell-computed mono" id="t-contabil">0,00</td>
+                      <td class="cell-computed"><span class="badge-aviso ok" id="t-aviso">OK</span></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div id="simples-section"></div>
+        </div>
+
+        <div id="protocol-step-2" style="display:none;">
+          <div class="card">
+            <div class="card-pad">
+              <h3 class="section-title"><svg class="icon"><use href="#i-percent"/></svg>Impostos do período</h3>
+              <p class="section-sub">Você está recebendo os seguintes impostos relacionados abaixo.</p>
+              ${state.taxCatalog.length ? `
+                <div style="display:flex; gap:10px; margin-bottom:16px;">
+                  <select id="tax-catalog-select" class="field-input" style="flex:1;">
+                    ${state.taxCatalog.map(t => `<option value="${t.id}">${t.name}${t.due ? ' — ' + t.due + 'º dia útil' : ''}</option>`).join('')}
+                  </select>
+                  <button class="btn btn-ghost" id="add-from-catalog-btn" type="button" style="white-space:nowrap;">Adicionar da lista</button>
+                </div>
+              ` : `<p class="hint" style="margin-top:0;">Cadastre impostos em Configurações para adicioná-los aqui com um clique.</p>`}
+              <div id="impostos-list"></div>
+              <button class="add-row-btn" id="add-imposto-btn" type="button"><svg class="icon"><use href="#i-plus"/></svg>Adicionar imposto em branco</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="position:sticky; top:44px;">
+        <div class="summary-card" id="summary-card"></div>
+        <div id="step-actions-1" style="margin-top:18px;">
+          <button class="btn btn-primary" id="next-step-btn" style="width:100%; padding:16px;">
+            Avançar para impostos →
+          </button>
+        </div>
+        <div id="step-actions-2" style="display:none; margin-top:18px;">
+          <button class="btn btn-ghost" id="prev-step-btn" style="width:100%; padding:14px; margin-bottom:10px;">
+            ← Voltar para movimento
+          </button>
+          <button class="btn btn-seal" id="gerar-pdf-btn" style="width:100%; padding:16px;">
+            <svg class="icon"><use href="#i-download"/></svg>Gerar PDF do protocolo
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function updateMonthsComputed(){
+  document.querySelectorAll('#months-tbody tr').forEach(row => {
+    const compras = parseBRNumber(row.querySelector('.m-compras').value);
+    const vendas = parseBRNumber(row.querySelector('.m-vendas').value);
+    const servicos = parseBRNumber(row.querySelector('.m-servicos').value);
+    const sefaz = parseBRNumber(row.querySelector('.m-sefaz').value);
+    const contabil = parseBRNumber(row.querySelector('.m-contabil').value);
+    row.querySelector('.m-lucro').textContent = fmtPercent(lucroPercent(compras, vendas, servicos));
+    const aviso = avisoStatus(sefaz, contabil);
+    const tag = row.querySelector('.m-aviso');
+    tag.textContent = aviso;
+    tag.className = 'badge-aviso m-aviso ' + (aviso === 'OK' ? 'ok' : 'verificar');
+  });
+
+  const months = collectMonthsData();
+  const t = computeTotals(months);
+  document.getElementById('t-compras').textContent = fmtMoney(t.compras);
+  document.getElementById('t-vendas').textContent = fmtMoney(t.vendas);
+  document.getElementById('t-servicos').textContent = fmtMoney(t.servicos);
+  document.getElementById('t-lucro').textContent = fmtPercent(t.lucro);
+  document.getElementById('t-sefaz').textContent = fmtMoney(t.sefaz);
+  document.getElementById('t-contabil').textContent = fmtMoney(t.contabil);
+  const tAviso = document.getElementById('t-aviso');
+  tAviso.textContent = t.aviso;
+  tAviso.className = 'badge-aviso ' + (t.aviso === 'OK' ? 'ok' : 'verificar');
+
+  document.getElementById('summary-card').innerHTML = `
+    <h3 class="serif" style="margin:0 0 4px; font-size:16px; font-weight:600;">Resumo do ano</h3>
+    <p style="margin:0 0 10px; font-size:12.5px; color:#8CA0BC;">Totais acumulados dos 12 meses.</p>
+    <div class="summary-row"><span class="lab">Compras</span><span class="val">R$ ${fmtMoney(t.compras)}</span></div>
+    <div class="summary-row"><span class="lab">Vendas</span><span class="val">R$ ${fmtMoney(t.vendas)}</span></div>
+    <div class="summary-row"><span class="lab">Serviços</span><span class="val">R$ ${fmtMoney(t.servicos)}</span></div>
+    <div class="summary-row"><span class="lab">Lucro %</span><span class="val">${fmtPercent(t.lucro)}</span></div>
+    <div class="summary-row"><span class="lab">SEFAZ</span><span class="val">R$ ${fmtMoney(t.sefaz)}</span></div>
+    <div class="summary-row"><span class="lab">Contabilidade</span><span class="val">R$ ${fmtMoney(t.contabil)}</span></div>
+    <div class="summary-row total"><span class="lab">Aviso</span><span class="badge-aviso ${t.aviso==='OK'?'ok':'verificar'}" style="background:${t.aviso==='OK'?'rgba(74,222,128,.18)':'rgba(238,155,160,.2)'}; color:${t.aviso==='OK'?'#4ADE80':'#F0AEB4'};">${t.aviso}</span></div>
+  `;
+
+  document.getElementById('stat-t-compras').textContent = 'R$ ' + fmtMoney(t.compras);
+  document.getElementById('stat-t-vendas').textContent = 'R$ ' + fmtMoney(t.vendas);
+  document.getElementById('stat-t-servicos').textContent = 'R$ ' + fmtMoney(t.servicos);
+  document.getElementById('stat-t-lucro').textContent = fmtPercent(t.lucro);
+  document.getElementById('stat-t-sefaz').textContent = 'R$ ' + fmtMoney(t.sefaz);
+  document.getElementById('stat-t-contabil').textContent = 'R$ ' + fmtMoney(t.contabil);
+
+  renderSimplesSection();
+}
+
+function goToProtocolStep(step){
+  document.getElementById('protocol-step-1').style.display = step === 1 ? '' : 'none';
+  document.getElementById('protocol-step-2').style.display = step === 2 ? '' : 'none';
+  document.getElementById('step-actions-1').style.display = step === 1 ? '' : 'none';
+  document.getElementById('step-actions-2').style.display = step === 2 ? '' : 'none';
+  document.querySelectorAll('.step-pill').forEach(el => el.classList.toggle('active', Number(el.dataset.step) === step));
+}
+
+function collectMonthsData(){
+  return Array.from(document.querySelectorAll('#months-tbody tr')).map(row => ({
+    label: MONTH_LABELS[Number(row.dataset.month)],
+    compras: parseBRNumber(row.querySelector('.m-compras').value),
+    vendas: parseBRNumber(row.querySelector('.m-vendas').value),
+    servicos: parseBRNumber(row.querySelector('.m-servicos').value),
+    sefaz: parseBRNumber(row.querySelector('.m-sefaz').value),
+    contabil: parseBRNumber(row.querySelector('.m-contabil').value),
+  }));
+}
+
+function addImpostoCard(nome, vencimento){
+  const wrap = document.getElementById('impostos-list');
+  const card = document.createElement('div');
+  card.className = 'imposto-card';
+  card.innerHTML = `
+    <button type="button" class="rm-imposto" title="Remover"><svg class="icon" style="width:14px;height:14px;"><use href="#i-x"/></svg></button>
+    <div class="imposto-grid">
+      <div><span class="mini-label">Imposto</span><input type="text" class="imp-nome" placeholder="Ex: ICMS NORMAL" value="${nome || ''}"></div>
+      <div><span class="mini-label">Período</span><input type="text" inputmode="numeric" class="imp-periodo periodo-mask" placeholder="MM/AAAA"></div>
+      <div><span class="mini-label">Valor (R$)</span><input type="text" inputmode="decimal" class="imp-valor money-mask"></div>
+      <div><span class="mini-label">Vencimento</span><input type="date" class="imp-venc" value="${vencimento || ''}"></div>
+    </div>
+    ${vencimento ? `<div class="hint" style="margin:-4px 0 10px;">Data sugerida com base no dia útil cadastrado — pode alterar livremente.</div>` : ''}
+    <div><span class="mini-label">Observações</span><textarea class="imp-obs" rows="1" placeholder="Observações adicionais (opcional)"></textarea></div>
+  `;
+  wrap.appendChild(card);
+  card.querySelector('.rm-imposto').addEventListener('click', ()=> card.remove());
+  attachMoneyMasks(card);
+  attachPeriodoMask(card);
+}
+
+function collectImpostosData(){
+  return Array.from(document.querySelectorAll('#impostos-list .imposto-card')).map(card => ({
+    nome: card.querySelector('.imp-nome').value.trim(),
+    periodo: card.querySelector('.imp-periodo').value.trim(),
+    valor: parseBRNumber(card.querySelector('.imp-valor').value),
+    vencimento: card.querySelector('.imp-venc').value,
+    obs: card.querySelector('.imp-obs').value.trim(),
+  })).filter(i => i.nome);
+}
+
+/* =========================================================
+   PROTOCOLOS GERADOS (histórico)
+   ========================================================= */
+function renderProtocolos(){
+  return `
+    <div class="page-head">
+      <div>
+        <span class="eyebrow">Histórico</span>
+        <h1>Protocolos gerados</h1>
+        <p>Todos os protocolos já emitidos, com opção de baixar o PDF novamente.</p>
+      </div>
+    </div>
+    <div class="head-rule"></div>
+    <div class="card">
+      <div class="card-pad" style="padding-top:8px;padding-bottom:8px;">
+        ${renderProtocolTable()}
+      </div>
+    </div>
+  `;
+}
+
+function renderProtocolTable(){
+  if(state.protocols.length === 0){
+    return `<div class="empty-state">
+      <svg class="icon ic"><use href="#i-list"/></svg>
+      <div class="t">Nenhum protocolo gerado ainda</div>
+      <div>Vá em "Novo protocolo" para criar o primeiro.</div>
+    </div>`;
+  }
+  const rows = state.protocols.slice().reverse().map(p => {
+    const simplesPending = p.simplesRows ? p.simplesRows.filter(r => r.status === 'PENDÊNCIA').length : 0;
+    return `
+    <tr>
+      <td class="protocolo mono">${p.protocolo}</td>
+      <td>${p.clientName}</td>
+      <td class="mono" style="color:var(--slate);">${p.ano}</td>
+      <td class="mono" style="color:var(--slate);">${p.issuedLabel}</td>
+      <td><span class="badge-aviso ${p.totals.aviso==='OK'?'ok':'verificar'}">${p.totals.aviso}</span></td>
+      <td>${p.simplesRows ? `<span class="badge-aviso ${simplesPending?'verificar':'ok'}">${simplesPending ? simplesPending+' mês(es) pendente(s)' : 'Regularizado'}</span>` : `<span style="color:var(--slate-light); font-size:12.5px;">—</span>`}</td>
+      <td class="mono">R$ ${fmtMoney(p.totals.vendas)}</td>
+      <td>
+        <button class="btn btn-text" data-redownload="${p.id}"><svg class="icon" style="width:14px;height:14px;"><use href="#i-download"/></svg>Baixar PDF</button>
+        <button class="btn btn-danger-text" data-delprotocol="${p.id}"><svg class="icon" style="width:14px;height:14px;"><use href="#i-trash"/></svg></button>
+      </td>
+    </tr>
+  `;
+  }).join('');
+  return `
+    <table class="doc-table">
+      <thead><tr><th>Protocolo</th><th>Cliente</th><th>Ano</th><th>Emitido em</th><th>Aviso</th><th>Simples Nacional</th><th>Vendas (ano)</th><th>Ações</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+/* =========================================================
+   GERAÇÃO DO PDF
+   ========================================================= */
+function buildAndDownloadPdf(p){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
+  const pw = doc.internal.pageSize.getWidth();
+  const marginX = 28;
+  let y = 22;
+
+  /* Linha 1: protocolo (esq.) · responsável (dir.) */
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(90,107,130);
+  doc.text(p.protocolo, marginX, y);
+  doc.text('RESPONSÁVEL: ' + (p.responsavel ? p.responsavel.toUpperCase() : '—'), pw - marginX, y, { align: 'right' });
+  y += 20;
+
+  /* Linha 2: logo + nome do escritório (esq.) · regime do cliente, menor (dir.) */
+  let officeTextX = marginX;
+  if(state.officeLogo){
+    try {
+      const fmt = /data:image\/png/i.test(state.officeLogo) ? 'PNG' : (/data:image\/jpe?g/i.test(state.officeLogo) ? 'JPEG' : 'PNG');
+      doc.addImage(state.officeLogo, fmt, marginX, y - 16, 34, 22, undefined, 'FAST');
+      officeTextX = marginX + 40;
+    } catch(e){ /* logo inválido, ignora silenciosamente */ }
+  }
+  if(state.officeName){
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(11,42,74);
+    doc.text(state.officeName, officeTextX, y);
+  }
+  if(p.regimeName){
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(120,130,145);
+    doc.text(p.regimeName, pw - marginX, y, { align: 'right' });
+  }
+  y += 22;
+
+  /* Título centralizado */
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(11,42,74);
+  doc.text('LUCRO REAL', pw/2, y, { align: 'center' });
+  y += 10;
+  doc.setDrawColor(11,42,74); doc.setLineWidth(1);
+  doc.line(marginX, y, pw - marginX, y);
+  y += 16;
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(11,42,74);
+  doc.text(p.clientName, marginX, y);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(90,107,130);
+  doc.text('CNPJ: ' + (p.clientCnpj || '—') + '   ·   Ano: ' + p.ano + '   ·   Emitido em ' + p.issuedLabel, marginX, y + 12);
+  y += 22;
+
+  doc.autoTable({
+    startY: y,
+    head: [['MÊS','COMPRAS','VENDAS','SERVIÇOS','LUCRO %','SEFAZ','CONTABILIDADE','AVISO']],
+    body: p.months.map(m => [
+      m.label,
+      fmtMoney(m.compras), fmtMoney(m.vendas), fmtMoney(m.servicos),
+      fmtPercent(lucroPercent(m.compras, m.vendas, m.servicos)),
+      fmtMoney(m.sefaz), fmtMoney(m.contabil),
+      avisoStatus(m.sefaz, m.contabil),
+    ]),
+    foot: [[
+      'TOTAL', fmtMoney(p.totals.compras), fmtMoney(p.totals.vendas), fmtMoney(p.totals.servicos),
+      fmtPercent(p.totals.lucro), fmtMoney(p.totals.sefaz), fmtMoney(p.totals.contabil), p.totals.aviso,
+    ]],
+    theme: 'grid',
+    headStyles: { fillColor: [11,42,74], textColor: 255, fontSize: 7.5, fontStyle: 'bold', halign: 'right', cellPadding: 3 },
+    footStyles: { fillColor: [235,240,247], textColor: [11,42,74], fontSize: 7.5, fontStyle: 'bold', halign: 'right', cellPadding: 3 },
+    bodyStyles: { fontSize: 7.5, textColor: [30,40,55], halign: 'right', cellPadding: 3 },
+    columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } },
+    margin: { left: marginX, right: marginX },
+    didParseCell: function(data){
+      if(data.column.index === 7 && (data.section === 'body' || data.section === 'foot')){
+        const val = data.cell.raw;
+        if(val === 'VERIFICAR'){ data.cell.styles.textColor = [179,39,58]; data.cell.styles.fontStyle = 'bold'; }
+        else if(val === 'OK'){ data.cell.styles.textColor = [44,122,78]; data.cell.styles.fontStyle = 'bold'; }
+      }
+    },
+  });
+  y = doc.lastAutoTable.finalY + 14;
+
+  if(p.simplesRows){
+    const pendingCount = p.simplesRows.filter(r => r.status === 'PENDÊNCIA').length;
+    const pendMsg = pendingCount
+      ? ((p.simplesCustomMsg && p.simplesCustomMsg.trim()) || `${pendingCount} mês(es) abaixo de ${SIMPLES_NACIONAL_MIN_LUCRO}% acumulado — resolver até 31/12.`)
+      : 'Lucro acumulado dentro da faixa exigida em todos os meses com movimento.';
+
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(11,42,74);
+    doc.text('COMPARATIVO SIMPLES NACIONAL', pw/2, y, { align: 'center' });
+    y += 13;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(90,107,130);
+    doc.text(`Lucro acumulado (janeiro até o mês) deve ficar acima de ${SIMPLES_NACIONAL_MIN_LUCRO}%.`, pw/2, y, { align: 'center' });
+    y += 15;
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+    const msgLines = doc.splitTextToSize(pendMsg, pw - marginX*2 - 112);
+    const boxHeight = Math.max(20, msgLines.length * 11 + 10);
+    doc.setFillColor(pendingCount ? 251 : 233, pendingCount ? 235 : 243, pendingCount ? 236 : 238);
+    doc.roundedRect(marginX, y, pw - marginX*2, boxHeight, 5, 5, 'F');
+    const textY = y + boxHeight / 2 + 3;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(pendingCount ? 179 : 44, pendingCount ? 39 : 122, pendingCount ? 58 : 78);
+    doc.text(pendingCount ? 'PENDÊNCIA' : 'REGULARIZADO', marginX + 9, textY);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(60,70,85);
+    doc.text(msgLines, marginX + 102, textY);
+    y += boxHeight + 12;
+  }
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(11,42,74);
+  doc.text('IMPOSTOS', pw/2, y, { align: 'center' });
+  y += 5;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(90,107,130);
+  doc.text('Você está recebendo os seguintes impostos relacionados abaixo', pw/2, y + 10, { align: 'center' });
+  y += 18;
+
+  if(p.impostos.length){
+    doc.autoTable({
+      startY: y,
+      head: [['IMPOSTO','PERÍODO','VALOR','VENCIMENTO','OBS']],
+      body: p.impostos.map(i => [i.nome, i.periodo || '—', 'R$ ' + fmtMoney(i.valor), formatDateBR(i.vencimento), i.obs || '—']),
+      theme: 'grid',
+      headStyles: { fillColor: [179,39,58], textColor: 255, fontSize: 7.5, fontStyle: 'bold', cellPadding: 4 },
+      bodyStyles: { fontSize: 7.5, textColor: [30,40,55], cellPadding: 4 },
+      columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' } },
+      margin: { left: marginX, right: marginX },
+    });
+    y = doc.lastAutoTable.finalY + 14;
+  } else {
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(120,130,145);
+    doc.text('Nenhum imposto informado neste protocolo.', pw/2, y + 5, { align: 'center' });
+    y += 18;
+  }
+
+  doc.setFontSize(7.5); doc.setTextColor(160,170,185);
+  doc.text('Documento gerado automaticamente pelo Portal Protocolo.', marginX, doc.internal.pageSize.getHeight() - 16);
+
+  doc.save(`${p.protocolo}-${p.ano}.pdf`);
+}
+
+/* =========================================================
+   EVENTOS PÓS-RENDER
+   ========================================================= */
+function afterRender(route){
+  if(route === 'clientes'){
+    renderClientGrid();
+    document.getElementById('new-client-btn').addEventListener('click', ()=> openClientModal(null));
+  }
+  if(route === 'configuracoes'){
+    renderTaxTable();
+    document.getElementById('new-tax-btn').addEventListener('click', ()=> openTaxModal(null));
+    renderRegimeTable();
+    document.getElementById('new-regime-btn').addEventListener('click', ()=> openRegimeModal(null));
+
+    const officeNameInput = document.getElementById('office-name-input');
+    officeNameInput.addEventListener('blur', function(){
+      state.officeName = this.value.trim();
+      renderBrandMark();
+    });
+
+    const officeFw = document.getElementById('office-logo-filewell');
+    const officeInput = document.getElementById('office-logo-input');
+    officeFw.addEventListener('click', ()=> officeInput.click());
+    officeInput.addEventListener('change', function(){
+      const file = this.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e){
+        state.officeLogo = e.target.result;
+        renderBrandMark();
+        navigate('configuracoes');
+        showToast('Logotipo do escritório atualizado.');
+      };
+      reader.readAsDataURL(file);
+    });
+    const removeOfficeLogoBtn = document.getElementById('remove-office-logo-btn');
+    if(removeOfficeLogoBtn){
+      removeOfficeLogoBtn.addEventListener('click', ()=>{
+        state.officeLogo = null;
+        renderBrandMark();
+        navigate('configuracoes');
+        showToast('Logotipo do escritório removido.');
+      });
+    }
+  }
+  if(route === 'novo-protocolo' && state.clients.length){
+    document.getElementById('p-client').value = state.pendingProtocolClientId || state.clients[0].id;
+
+    attachMoneyMasks(document.getElementById('months-tbody'));
+    document.getElementById('months-tbody').addEventListener('input', updateMonthsComputed);
+    document.getElementById('p-client').addEventListener('change', updateMonthsComputed);
+    updateMonthsComputed();
+
+    document.getElementById('add-imposto-btn').addEventListener('click', ()=> addImpostoCard());
+    const catalogBtn = document.getElementById('add-from-catalog-btn');
+    if(catalogBtn){
+      catalogBtn.addEventListener('click', ()=>{
+        const taxId = Number(document.getElementById('tax-catalog-select').value);
+        const t = state.taxCatalog.find(t => t.id === taxId);
+        if(t) addImpostoCard(t.name, suggestDueDateFromBusinessDay(t.due));
+      });
+    }
+    document.getElementById('gerar-pdf-btn').addEventListener('click', gerarProtocolo);
+
+    document.getElementById('next-step-btn').addEventListener('click', ()=> goToProtocolStep(2));
+    document.getElementById('prev-step-btn').addEventListener('click', ()=> goToProtocolStep(1));
+    goToProtocolStep(1);
+  }
+  if(route === 'protocolos'){
+    document.querySelectorAll('[data-redownload]').forEach(b => b.addEventListener('click', ()=>{
+      const p = state.protocols.find(p => p.id === Number(b.dataset.redownload));
+      if(p) buildAndDownloadPdf(p);
+    }));
+    document.querySelectorAll('[data-delprotocol]').forEach(b => b.addEventListener('click', ()=>{
+      const p = state.protocols.find(p => p.id === Number(b.dataset.delprotocol));
+      if(p && confirm(`Remover o protocolo ${p.protocolo} do histórico?`)){
+        state.protocols = state.protocols.filter(x => x.id !== p.id);
+        navigate('protocolos');
+        showToast('Protocolo removido do histórico.');
+      }
+    }));
+  }
+}
+
+function gerarProtocolo(){
+  const clientId = Number(document.getElementById('p-client').value);
+  const client = state.clients.find(c => c.id === clientId);
+  if(!client){ showToast('Selecione um cliente.', true); return; }
+
+  const months = collectMonthsData();
+  const impostos = collectImpostosData();
+  const totals = computeTotals(months);
+  const regime = client.regimeId ? state.taxRegimes.find(r => r.id === client.regimeId) : null;
+  const regimeName = regime ? regime.name : null;
+  const simplesRows = isSimplesNacionalRegime(regimeName) ? computeSimplesNacionalRows(months) : null;
+  const simplesCustomMsg = (regime && regime.obs) ? regime.obs.trim() : '';
+
+  state.protocolCounter += 1;
+  const protocol = {
+    id: state.protocolCounter,
+    protocolo: protocoloFor(state.protocolCounter),
+    clientId: client.id,
+    clientName: client.name,
+    clientCnpj: client.cnpj,
+    issuedLabel: todayLabel(),
+    ano: document.getElementById('p-ano').value,
+    responsavel: document.getElementById('p-responsavel').value.trim(),
+    regimeName,
+    simplesRows,
+    simplesCustomMsg,
+    months,
+    impostos,
+    totals,
+  };
+
+  state.protocols.push(protocol);
+  buildAndDownloadPdf(protocol);
+  showToast(`Protocolo ${protocol.protocolo} gerado e baixado.`);
+  state.pendingProtocolClientId = null;
+  setTimeout(()=> navigate('protocolos'), 500);
+}
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+let toastTimer = null;
+function showToast(msg, isError){
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-text').textContent = msg;
+  toast.classList.toggle('is-error', !!isError);
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> toast.classList.remove('show'), 3400);
+}
+</script>
+</body>
+</html>
