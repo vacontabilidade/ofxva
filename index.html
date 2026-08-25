@@ -679,7 +679,7 @@
     </div>
 
     <footer class="footer">
-        <p>Ofx VA v6.17.1 • Desenvolvido por DSP Group</p>
+        <p>Ofx VA v1.2.1 • Desenvolvido por DSP Group</p>
     </footer>
 
     <script>
@@ -804,24 +804,77 @@
         }
 
         function parseExtract(text) {
-            const dateRegex = /(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/g;
-            const valueRegex = /(\d+[.,]\d{2})/g;
             const lines = text.split('\n').filter(line => line.trim());
             const transactions = [];
-            lines.forEach((line) => {
-                const dates = line.match(dateRegex);
-                const values = line.match(valueRegex);
-                if (dates && values) {
-                    transactions.push({
-                        data: dates[0],
-                        descricao: line.substring(0, 50),
-                        valor: parseFloat(values[0].replace(',', '.')),
-                        tipo: line.includes('C') || line.includes('CRÉDITO') ? 'CRÉDITO' : 'DÉBITO',
-                        saldo: values[values.length - 1] || ''
-                    });
+            
+            const datePattern = /(\d{1,2}\/\d{1,2}\/\d{4})/;
+            const valuePattern = /\d+[.,]\d{2}/g;
+            
+            let i = 0;
+            while (i < lines.length) {
+                const line = lines[i];
+                const dateMatch = line.match(datePattern);
+                
+                if (dateMatch) {
+                    const data = dateMatch[1];
+                    let descricao = line.replace(data, '').trim();
+                    let valores = line.match(valuePattern) || [];
+                    
+                    // Se não encontrou valores, verifica próximas linhas
+                    let j = i + 1;
+                    let maxLinhas = 0;
+                    while (j < lines.length && maxLinhas < 5) {
+                        const nextLine = lines[j];
+                        if (nextLine.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) break;
+                        const nextValues = nextLine.match(valuePattern) || [];
+                        valores = valores.concat(nextValues);
+                        if (nextValues.length > 0) {
+                            descricao += ' ' + nextLine.substring(0, 40);
+                        }
+                        j++;
+                        maxLinhas++;
+                        if (valores.length >= 3) break;
+                    }
+                    
+                    // Processa valores encontrados
+                    if (valores.length >= 1) {
+                        let credito = 0, debito = 0, saldo = '';
+                        
+                        // Padrão: Crédito, Débito, Saldo
+                        if (valores.length >= 3) {
+                            const val1 = parseFloat(valores[0].replace(',', '.'));
+                            const val2 = parseFloat(valores[1].replace(',', '.'));
+                            credito = val1;
+                            debito = val2;
+                            saldo = valores[2];
+                        } else if (valores.length === 2) {
+                            const val1 = parseFloat(valores[0].replace(',', '.'));
+                            credito = val1;
+                            saldo = valores[1];
+                        } else {
+                            const val1 = parseFloat(valores[0].replace(',', '.'));
+                            credito = val1;
+                        }
+                        
+                        const valor = credito !== 0 ? credito : debito;
+                        if (valor !== 0) {
+                            transactions.push({
+                                data: data,
+                                descricao: descricao.substring(0, 100),
+                                valor: Math.abs(valor),
+                                tipo: valor > 0 ? 'CRÉDITO' : 'DÉBITO',
+                                saldo: saldo.toString()
+                            });
+                        }
+                    }
+                    
+                    i = j > i + 1 ? j : i + 1;
+                } else {
+                    i++;
                 }
-            });
-            currentData = transactions.filter(t => t.valor !== 0);
+            }
+            
+            currentData = transactions;
             if (currentData.length === 0) parseCSVData(text);
         }
 
